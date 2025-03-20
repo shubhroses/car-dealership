@@ -7,6 +7,6 @@
     "numReplicas": 1,
     "restartPolicyType": "ON_FAILURE",
     "restartPolicyMaxRetries": 10,
-    "startCommand": "java -Xmx512m -Xms256m -jar target/cardealership-0.0.1-SNAPSHOT.jar"
+    "startCommand": "java -Xmx256m -Xms128m -XX:+UseSerialGC -XX:MaxRAM=300m -Dspring.profiles.active=prod -jar target/cardealership-0.0.1-SNAPSHOT.jar"
   }
 } 
