@@ -56,7 +56,7 @@ public class Vehicle {
     @Column(name = "feature")
     private List<String> features = new ArrayList<>();
     
-    @ElementCollection
+    @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "vehicle_images", joinColumns = @JoinColumn(name = "vehicle_id"))
     @Column(name = "image_url")
     private List<String> imageUrls = new ArrayList<>();
