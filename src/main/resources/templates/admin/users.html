@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - User Management</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8f9fa;
+        }
+        #sidebar {
+            background-color: #343a40;
+            min-height: 100vh;
+            padding-top: 20px;
+        }
+        .sidebar-sticky {
+            position: -webkit-sticky;
+            position: sticky;
+            top: 0;
+            height: calc(100vh - 48px);
+            padding-top: 0.5rem;
+            overflow-x: hidden;
+            overflow-y: auto;
+        }
+        .nav-link {
+            color: rgba(255, 255, 255, 0.7);
+            padding: 0.5rem 1rem;
+            margin: 0.2rem 0;
+        }
+        .nav-link:hover {
+            color: rgba(255, 255, 255, 0.9);
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        .nav-link.active {
+            color: #fff;
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        .main-content {
+            padding: 20px;
+        }
+        .user-table {
+            background-color: white;
+            border-radius: 5px;
+            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+        }
+        .role-badge {
+            margin-right: 5px;
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 0.75rem;
+        }
+        .action-btn {
+            margin: 0 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar Navigation -->
+            <nav id="sidebar" class="col-md-3 col-lg-2 d-md-block sidebar">
+                <div class="position-sticky sidebar-sticky">
+                    <div class="d-flex align-items-center justify-content-center mb-4 p-3">
+                        <h5 class="text-white m-0">Premium Auto Dealership</h5>
+                    </div>
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link" th:href="@{/admin/dashboard}">
+                                <i class="bi bi-speedometer2"></i> Dashboard
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" th:href="@{/admin/vehicles}">
+                                <i class="bi bi-car-front"></i> Vehicles
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" th:href="@{/admin/inquiries}">
+                                <i class="bi bi-chat-left-text"></i> Inquiries
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link active" th:href="@{/admin/users}">
+                                <i class="bi bi-people"></i> Users
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" th:href="@{/}">
+                                <i class="bi bi-house"></i> Back to Site
+                            </a>
+                        </li>
+                        <li class="nav-item mt-5">
+                            <form th:action="@{/logout}" method="post">
+                                <button class="nav-link w-100 text-start border-0 bg-transparent">
+                                    <i class="bi bi-box-arrow-left"></i> Sign Out
+                                </button>
+                            </form>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
+
+            <!-- Main Content -->
+            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+                <div class="main-content">
+                    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                        <h1 class="h2">User Management</h1>
+                    </div>
+                    
+                    <!-- Alert Messages -->
+                    <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show" role="alert">
+                        <span th:text="${successMessage}"></span>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                    <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
+                        <span th:text="${errorMessage}"></span>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                    <div th:if="${infoMessage}" class="alert alert-info alert-dismissible fade show" role="alert">
+                        <span th:text="${infoMessage}"></span>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                    
+                    <!-- Users Table -->
+                    <div class="user-table p-3 mt-4">
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Username</th>
+                                        <th>Name</th>
+                                        <th>Email</th>
+                                        <th>Roles</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr th:each="user : ${users}">
+                                        <td th:text="${user.id}"></td>
+                                        <td th:text="${user.username}"></td>
+                                        <td th:text="${user.firstName + ' ' + user.lastName}"></td>
+                                        <td th:text="${user.email}"></td>
+                                        <td>
+                                            <span th:each="role : ${user.roles}" 
+                                                  th:class="${role.name() == 'ROLE_ADMIN' ? 'role-badge bg-danger' : 
+                                                              role.name() == 'ROLE_STAFF' ? 'role-badge bg-info' : 
+                                                              'role-badge bg-secondary'}"
+                                                  th:text="${#strings.replace(role.name(), 'ROLE_', '')}">
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <div class="d-flex">
+                                                <form th:if="${!user.hasRole(T(com.dealership.cardealership.model.User.UserRole).ROLE_ADMIN)}"
+                                                      th:action="@{/admin/users/{id}/add-admin-role(id=${user.id})}" 
+                                                      method="post">
+                                                    <button type="submit" class="btn btn-sm btn-outline-primary action-btn">
+                                                        Add Admin Role
+                                                    </button>
+                                                </form>
+                                                <form th:if="${user.hasRole(T(com.dealership.cardealership.model.User.UserRole).ROLE_ADMIN)}"
+                                                      th:action="@{/admin/users/{id}/remove-admin-role(id=${user.id})}" 
+                                                      method="post">
+                                                    <button type="submit" class="btn btn-sm btn-outline-danger action-btn">
+                                                        Remove Admin Role
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+    
+    <!-- Bootstrap JS Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html> 

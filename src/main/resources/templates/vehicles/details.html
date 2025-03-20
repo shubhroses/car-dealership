@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${vehicle.modelYear + ' ' + vehicle.make + ' ' + vehicle.model} + ' - Premium Auto Dealership'">Vehicle Details</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.0/font/bootstrap-icons.css" rel="stylesheet">
+    <!-- Custom CSS -->
+    <style>
+        .main-image {
+            width: 100%;
+            height: 400px;
+            object-fit: cover;
+            border-radius: 8px;
+        }
+        
+        .thumbnail {
+            width: 100%;
+            height: 80px;
+            object-fit: cover;
+            cursor: pointer;
+            border-radius: 5px;
+            border: 2px solid transparent;
+            transition: all 0.2s;
+        }
+        
+        .thumbnail:hover, .thumbnail.active {
+            border-color: #0d6efd;
+        }
+        
+        .features-list li {
+            margin-bottom: 10px;
+        }
+        
+        .inquiry-form {
+            background-color: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="#">Premium Auto Dealership</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" th:href="@{/}">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" th:href="@{/vehicles}">Inventory</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" th:href="@{/about}">About Us</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" th:href="@{/contact}">Contact</a>
+                    </li>
+                </ul>
+                <div class="d-flex">
+                    <div sec:authorize="!isAuthenticated()">
+                        <a th:href="@{/login}" class="btn btn-outline-light me-2">Login</a>
+                        <a th:href="@{/register}" class="btn btn-primary">Register</a>
+                    </div>
+                    <div sec:authorize="isAuthenticated()">
+                        <div class="dropdown">
+                            <button class="btn btn-outline-light dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                <span sec:authentication="name">Username</span>
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li sec:authorize="hasRole('ROLE_CUSTOMER')">
+                                    <a class="dropdown-item" th:href="@{/customer/dashboard}">My Dashboard</a>
+                                </li>
+                                <li sec:authorize="hasRole('ROLE_ADMIN')">
+                                    <a class="dropdown-item" th:href="@{/admin/dashboard}">Admin Dashboard</a>
+                                </li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <form th:action="@{/logout}" method="post">
+                                        <button class="dropdown-item" type="submit">Logout</button>
+                                    </form>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container py-5">
+        <!-- Success Message -->
+        <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show" role="alert">
+            <span th:text="${successMessage}">Success message</span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        
+        <!-- Breadcrumb -->
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a th:href="@{/}">Home</a></li>
+                <li class="breadcrumb-item"><a th:href="@{/vehicles}">Inventory</a></li>
+                <li class="breadcrumb-item active" aria-current="page" th:text="${vehicle.modelYear + ' ' + vehicle.make + ' ' + vehicle.model}">Vehicle</li>
+            </ol>
+        </nav>
+        
+        <div class="row">
+            <!-- Vehicle Images and Details -->
+            <div class="col-lg-8">
+                <!-- Vehicle Title -->
+                <h1 class="mb-3" th:text="${vehicle.modelYear + ' ' + vehicle.make + ' ' + vehicle.model}">Vehicle Title</h1>
+                
+                <div class="mb-4">
+                    <span class="badge bg-success me-2" th:if="${vehicle.status != null && vehicle.status.name() == 'AVAILABLE'}">Available</span>
+                    <span class="badge bg-warning me-2" th:if="${vehicle.status != null && vehicle.status.name() == 'RESERVED'}">Reserved</span>
+                    <span class="badge bg-danger me-2" th:if="${vehicle.status != null && vehicle.status.name() == 'SOLD'}">Sold</span>
+                    <span class="badge bg-secondary me-2" th:if="${vehicle.status != null && vehicle.status.name() == 'MAINTENANCE'}">In Maintenance</span>
+                    <span class="fs-4 fw-bold text-primary" th:text="${'$' + #numbers.formatDecimal(vehicle.price, 0, 'COMMA', 2, 'POINT')}">$25,000.00</span>
+                </div>
+                
+                <!-- Main Image -->
+                <div class="mb-3">
+                    <img id="mainImage" th:if="${!vehicle.imageUrls.empty}" th:src="${vehicle.imageUrls[0]}" class="main-image" alt="Vehicle Image">
+                    <img th:if="${vehicle.imageUrls.empty}" th:src="@{/images/no-image.jpg}" class="main-image" alt="No Image Available">
+                </div>
+                
+                <!-- Thumbnails -->
+                <div class="row mb-4" th:if="${!vehicle.imageUrls.empty && vehicle.imageUrls.size() > 1}">
+                    <div th:each="image, stat : ${vehicle.imageUrls}" class="col-2 mb-2">
+                        <img th:src="${image}" th:data-src="${image}" th:class="${stat.index == 0 ? 'thumbnail active' : 'thumbnail'}" onclick="changeImage(this)">
+                    </div>
+                </div>
+                
+                <!-- Vehicle Description -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h4 class="mb-0">Description</h4>
+                    </div>
+                    <div class="card-body">
+                        <p th:text="${vehicle.description}">Vehicle description goes here.</p>
+                    </div>
+                </div>
+                
+                <!-- Vehicle Features -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h4 class="mb-0">Features</h4>
+                    </div>
+                    <div class="card-body">
+                        <ul class="list-unstyled row features-list">
+                            <li th:each="feature : ${vehicle.features}" class="col-md-6">
+                                <i class="bi bi-check-circle-fill text-success me-2"></i>
+                                <span th:text="${feature}">Feature</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Sidebar -->
+            <div class="col-lg-4">
+                <!-- Vehicle Specifications -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h4 class="mb-0">Vehicle Details</h4>
+                    </div>
+                    <div class="card-body">
+                        <table class="table table-striped">
+                            <tbody>
+                                <tr>
+                                    <th>Make</th>
+                                    <td th:text="${vehicle.make}">Toyota</td>
+                                </tr>
+                                <tr>
+                                    <th>Model</th>
+                                    <td th:text="${vehicle.model}">Camry</td>
+                                </tr>
+                                <tr>
+                                    <th>Year</th>
+                                    <td th:text="${vehicle.modelYear}">2022</td>
+                                </tr>
+                                <tr>
+                                    <th>Color</th>
+                                    <td th:text="${vehicle.color}">Blue</td>
+                                </tr>
+                                <tr>
+                                    <th>Mileage</th>
+                                    <td th:text="${vehicle.mileage + ' miles'}">15,000 miles</td>
+                                </tr>
+                                <tr>
+                                    <th>VIN</th>
+                                    <td th:text="${vehicle.vin}">1HGCM82633A123456</td>
+                                </tr>
+                                <tr>
+                                    <th>Fuel Type</th>
+                                    <td th:text="${vehicle.fuelType}">Gasoline</td>
+                                </tr>
+                                <tr>
+                                    <th>Transmission</th>
+                                    <td th:text="${vehicle.transmissionType}">Automatic</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <!-- Inquiry Form -->
+                <div class="inquiry-form" sec:authorize="hasRole('ROLE_CUSTOMER')">
+                    <h4 class="mb-3">Interested in this vehicle?</h4>
+                    <form th:action="@{/customer/inquiries/vehicle/{id}(id=${vehicle.id})}" method="post">
+                        <div class="mb-3">
+                            <label for="message" class="form-label">Your Message</label>
+                            <textarea class="form-control" id="message" name="message" rows="5" placeholder="I'm interested in this vehicle. Please provide more information." required></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100">Submit Inquiry</button>
+                    </form>
+                </div>
+                
+                <!-- Login/Register Prompt -->
+                <div class="inquiry-form" sec:authorize="!isAuthenticated()">
+                    <h4 class="mb-3">Interested in this vehicle?</h4>
+                    <p>Please log in or register to inquire about this vehicle.</p>
+                    <div class="d-grid gap-2">
+                        <a th:href="@{/login}" class="btn btn-primary">Login</a>
+                        <a th:href="@{/register}" class="btn btn-outline-secondary">Register</a>
+                    </div>
+                </div>
+                
+                <!-- Contact Information -->
+                <div class="card mt-4">
+                    <div class="card-header">
+                        <h4 class="mb-0">Contact Us</h4>
+                    </div>
+                    <div class="card-body">
+                        <p><i class="bi bi-telephone-fill me-2"></i> (555) 123-4567</p>
+                        <p><i class="bi bi-envelope-fill me-2"></i> info@premiumauto.com</p>
+                        <p><i class="bi bi-geo-alt-fill me-2"></i> 123 Dealership Street, City, State 12345</p>
+                        <p><i class="bi bi-clock-fill me-2"></i> Mon-Fri: 9am-7pm, Sat: 10am-5pm, Sun: Closed</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-dark text-white py-4">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-4">
+                    <h5>Premium Auto Dealership</h5>
+                    <p>Your trusted partner for quality vehicles.</p>
+                </div>
+                <div class="col-md-4">
+                    <h5>Quick Links</h5>
+                    <ul class="list-unstyled">
+                        <li><a th:href="@{/}" class="text-white">Home</a></li>
+                        <li><a th:href="@{/vehicles}" class="text-white">Inventory</a></li>
+                        <li><a th:href="@{/about}" class="text-white">About Us</a></li>
+                        <li><a th:href="@{/contact}" class="text-white">Contact</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-4">
+                    <h5>Contact Us</h5>
+                    <address>
+                        <p>123 Dealership Street<br>City, State 12345</p>
+                        <p>Phone: (555) 123-4567<br>Email: info@premiumauto.com</p>
+                    </address>
+                </div>
+            </div>
+            <hr>
+            <div class="text-center">
+                <p>&copy; 2023 Premium Auto Dealership. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Custom JavaScript for image gallery -->
+    <script>
+        function changeImage(thumbnail) {
+            // Update main image
+            document.getElementById('mainImage').src = thumbnail.getAttribute('data-src');
+            
+            // Update active thumbnail
+            var thumbnails = document.getElementsByClassName('thumbnail');
+            for (var i = 0; i < thumbnails.length; i++) {
+                thumbnails[i].classList.remove('active');
+            }
+            thumbnail.classList.add('active');
+        }
+    </script>
+</body>
+</html> 

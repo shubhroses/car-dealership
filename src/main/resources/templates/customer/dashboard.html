@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Dashboard - Premium Auto Dealership</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.0/font/bootstrap-icons.css" rel="stylesheet">
+    <!-- Custom CSS -->
+    <style>
+        .banner {
+            background-color: #f8f9fa;
+            padding: 30px 0;
+            margin-bottom: 30px;
+        }
+        
+        .inquiry-card {
+            transition: transform 0.3s;
+        }
+        
+        .inquiry-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand d-flex align-items-center" href="#">
+                <img th:src="@{/images/logo/dealership-logo.png}" alt="Logo" width="30" height="30" class="me-2">
+                Premium Auto Dealership
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" th:href="@{/}">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" th:href="@{/vehicles}">Inventory</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" th:href="@{/about}">About Us</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" th:href="@{/contact}">Contact</a>
+                    </li>
+                </ul>
+                <div class="d-flex">
+                    <div class="dropdown">
+                        <button class="btn btn-outline-light dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                            <span th:text="${user.firstName}">Username</span>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li>
+                                <a class="dropdown-item active" th:href="@{/customer/dashboard}">My Dashboard</a>
+                            </li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <form th:action="@{/logout}" method="post">
+                                    <button class="dropdown-item" type="submit">Logout</button>
+                                </form>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Banner -->
+    <section class="banner">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h1 class="mb-2">Welcome Back, <span th:text="${user.firstName}">Username</span></h1>
+                    <p class="lead mb-0">Manage your inquiries and track your favorite vehicles.</p>
+                </div>
+                <div class="col-md-4 text-md-end">
+                    <a th:href="@{/vehicles}" class="btn btn-primary">
+                        <i class="bi bi-search me-2"></i> Browse Vehicles
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Main Content -->
+    <div class="container mb-5">
+        <!-- Success Message -->
+        <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show" role="alert">
+            <span th:text="${successMessage}">Success message</span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        
+        <!-- Content Tabs -->
+        <ul class="nav nav-tabs mb-4" id="myTab" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="inquiries-tab" data-bs-toggle="tab" data-bs-target="#inquiries" type="button" role="tab" aria-controls="inquiries" aria-selected="true">
+                    <i class="bi bi-chat-left-text me-2"></i> My Inquiries
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="profile-tab" data-bs-toggle="tab" data-bs-target="#profile" type="button" role="tab" aria-controls="profile" aria-selected="false">
+                    <i class="bi bi-person me-2"></i> Profile Information
+                </button>
+            </li>
+        </ul>
+        
+        <div class="tab-content" id="myTabContent">
+            <!-- Inquiries Tab -->
+            <div class="tab-pane fade show active" id="inquiries" role="tabpanel" aria-labelledby="inquiries-tab">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h3>My Inquiries</h3>
+                    <a th:href="@{/customer/inquiries}" class="btn btn-outline-primary">
+                        <i class="bi bi-list-ul me-2"></i> View All Inquiries
+                    </a>
+                </div>
+                
+                <!-- Empty State -->
+                <div th:if="${inquiries.empty}" class="text-center py-5">
+                    <i class="bi bi-chat-left-text fs-1 text-muted"></i>
+                    <h4 class="mt-3">No Inquiries Yet</h4>
+                    <p class="text-muted mb-4">Start browsing vehicles and make inquiries about ones you're interested in.</p>
+                    <a th:href="@{/vehicles}" class="btn btn-primary">Browse Vehicles</a>
+                </div>
+                
+                <!-- Inquiries List -->
+                <div th:if="${!inquiries.empty}" class="row g-4">
+                    <div th:each="inquiry : ${inquiries}" class="col-md-6">
+                        <div class="card inquiry-card h-100">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <span th:text="${inquiry.vehicle.modelYear + ' ' + inquiry.vehicle.make + ' ' + inquiry.vehicle.model}">Vehicle</span>
+                                <span th:class="${'badge ' + 
+                                    (inquiry.status.name() == 'NEW' ? 'bg-info' : 
+                                    (inquiry.status.name() == 'IN_PROGRESS' ? 'bg-warning' : 
+                                    (inquiry.status.name() == 'RESPONDED' ? 'bg-success' : 'bg-secondary'))
+                                }" th:text="${inquiry.status}">Status</span>
+                            </div>
+                            <div class="card-body">
+                                <div class="mb-3">
+                                    <small class="text-muted d-block">Date Submitted</small>
+                                    <span th:text="${#temporals.format(inquiry.inquiryDate, 'MMMM dd, yyyy')}">January 1, 2023</span>
+                                </div>
+                                <div class="mb-3">
+                                    <h6>Your Message:</h6>
+                                    <p class="mb-0" th:text="${inquiry.message}">Inquiry message</p>
+                                </div>
+                                <div th:if="${inquiry.response != null}">
+                                    <h6>Response:</h6>
+                                    <p class="mb-0" th:text="${inquiry.response}">Response message</p>
+                                </div>
+                            </div>
+                            <div class="card-footer">
+                                <div class="d-flex justify-content-between">
+                                    <a th:href="@{/vehicles/{id}(id=${inquiry.vehicle.id})}" class="text-decoration-none">
+                                        View Vehicle <i class="bi bi-arrow-right"></i>
+                                    </a>
+                                    <a th:href="@{/customer/inquiries/{id}(id=${inquiry.id})}" class="text-decoration-none">
+                                        Details <i class="bi bi-arrow-right"></i>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Profile Tab -->
+            <div class="tab-pane fade" id="profile" role="tabpanel" aria-labelledby="profile-tab">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="mb-0">Personal Information</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="text-center mb-4">
+                                    <!-- Profile picture -->
+                                    <img src="/dealership/images/profile/shubhrose-singh.jpg" class="rounded-circle img-thumbnail mb-2" alt="Profile Picture" style="width: 150px; height: 150px; object-fit: cover;">
+                                    <h4 th:text="${user.firstName + ' ' + user.lastName}">Shubhrose Singh</h4>
+                                </div>
+                                <table class="table">
+                                    <tbody>
+                                        <tr>
+                                            <th style="width: 30%">Username</th>
+                                            <td sec:authentication="name">Username</td>
+                                        </tr>
+                                        <tr>
+                                            <th>Name</th>
+                                            <td th:text="${user.firstName + ' ' + user.lastName}">John Doe</td>
+                                        </tr>
+                                        <tr>
+                                            <th>Email</th>
+                                            <td th:text="${user.email}">john.doe@example.com</td>
+                                        </tr>
+                                        <tr>
+                                            <th>Phone</th>
+                                            <td th:text="${user.phone}">Phone Number</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                                <a href="#" class="btn btn-sm btn-outline-primary mt-2">
+                                    <i class="bi bi-pencil me-1"></i> Update Information
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="mb-0">Address Information</h5>
+                            </div>
+                            <div class="card-body">
+                                <address>
+                                    <p th:if="${user.address != null}">
+                                        <span th:text="${user.address.street}">Street</span><br>
+                                        <span th:text="${user.address.city + ', ' + user.address.state + ' ' + user.address.zipCode}">City, State ZIP</span><br>
+                                        <span th:text="${user.address.country}">Country</span>
+                                    </p>
+                                    <p th:if="${user.address == null}">No address information available.</p>
+                                </address>
+                                <a href="#" class="btn btn-sm btn-outline-primary">
+                                    <i class="bi bi-pencil me-1"></i> Update Address
+                                </a>
+                            </div>
+                        </div>
+                        
+                        <div class="card mt-4">
+                            <div class="card-header">
+                                <h5 class="mb-0">Account Security</h5>
+                            </div>
+                            <div class="card-body">
+                                <a href="#" class="btn btn-sm btn-outline-primary">
+                                    <i class="bi bi-key me-1"></i> Change Password
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-dark text-white py-4">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-4">
+                    <h5>Premium Auto Dealership</h5>
+                    <p>Your trusted partner for quality vehicles.</p>
+                </div>
+                <div class="col-md-4">
+                    <h5>Quick Links</h5>
+                    <ul class="list-unstyled">
+                        <li><a th:href="@{/}" class="text-white">Home</a></li>
+                        <li><a th:href="@{/vehicles}" class="text-white">Inventory</a></li>
+                        <li><a th:href="@{/about}" class="text-white">About Us</a></li>
+                        <li><a th:href="@{/contact}" class="text-white">Contact</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-4">
+                    <h5>Contact Us</h5>
+                    <address>
+                        <p>123 Dealership Street<br>City, State 12345</p>
+                        <p>Phone: (555) 123-4567<br>Email: info@premiumauto.com</p>
+                    </address>
+                </div>
+            </div>
+            <hr>
+            <div class="text-center">
+                <p>&copy; 2023 Premium Auto Dealership. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html> 

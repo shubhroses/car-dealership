@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About Us - Premium Auto Dealership</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.0/font/bootstrap-icons.css" rel="stylesheet">
+    <!-- Custom CSS -->
+    <style>
+        .team-member {
+            transition: transform 0.3s;
+        }
+        
+        .team-member:hover {
+            transform: translateY(-5px);
+        }
+        
+        .team-img {
+            height: 200px;
+            width: 200px;
+            object-fit: cover;
+            border-radius: 50%;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand d-flex align-items-center" href="#">
+                <img th:src="@{/images/logo/dealership-logo.png}" alt="Logo" width="30" height="30" class="me-2">
+                Premium Auto Dealership
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" th:href="@{/}">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" th:href="@{/vehicles}">Inventory</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" th:href="@{/about}">About Us</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" th:href="@{/contact}">Contact</a>
+                    </li>
+                </ul>
+                <div class="d-flex">
+                    <div sec:authorize="!isAuthenticated()">
+                        <a th:href="@{/login}" class="btn btn-outline-light me-2">Login</a>
+                        <a th:href="@{/register}" class="btn btn-primary">Register</a>
+                    </div>
+                    <div sec:authorize="isAuthenticated()">
+                        <div class="dropdown">
+                            <button class="btn btn-outline-light dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                <span sec:authentication="name">Username</span>
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li sec:authorize="hasRole('ROLE_CUSTOMER')">
+                                    <a class="dropdown-item" th:href="@{/customer/dashboard}">My Dashboard</a>
+                                </li>
+                                <li sec:authorize="hasRole('ROLE_ADMIN')">
+                                    <a class="dropdown-item" th:href="@{/admin/dashboard}">Admin Dashboard</a>
+                                </li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <form th:action="@{/logout}" method="post">
+                                        <button class="dropdown-item" type="submit">Logout</button>
+                                    </form>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <div class="bg-dark text-white py-5">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <h1 class="display-4 fw-bold">About Us</h1>
+                    <p class="lead">Premium Auto Dealership has been serving our community with quality vehicles and exceptional service since 2005.</p>
+                </div>
+                <div class="col-md-6">
+                    <img th:src="@{/images/dealership/dealership-building.jpg}" alt="Dealership" class="img-fluid rounded">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Our Story Section -->
+    <div class="container py-5">
+        <div class="row">
+            <div class="col-md-8 mx-auto text-center">
+                <h2 class="mb-4">Our Story</h2>
+                <p class="lead">At Premium Auto Dealership, we're more than just a car dealership. We're a family business committed to providing our customers with a transparent and enjoyable car buying experience.</p>
+                <p>Founded in 2005 by Shubhrose Singh, Premium Auto Dealership started as a small lot with just 10 pre-owned vehicles. Over the years, we've grown to become one of the most trusted dealerships in the region, offering a wide selection of new and pre-owned vehicles.</p>
+                <p>Our mission is simple: to help our customers find the perfect vehicle that meets their needs, budget, and lifestyle, while providing exceptional service throughout the entire process.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Values Section -->
+    <div class="bg-light py-5">
+        <div class="container">
+            <h2 class="text-center mb-5">Our Core Values</h2>
+            <div class="row g-4">
+                <div class="col-md-4">
+                    <div class="card h-100">
+                        <div class="card-body text-center">
+                            <i class="bi bi-hand-thumbs-up text-primary" style="font-size: 3rem;"></i>
+                            <h4 class="card-title mt-3">Integrity</h4>
+                            <p class="card-text">We believe in honesty and transparency in all our dealings. No hidden fees, no pressure tactics, just straightforward information to help you make an informed decision.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card h-100">
+                        <div class="card-body text-center">
+                            <i class="bi bi-award text-primary" style="font-size: 3rem;"></i>
+                            <h4 class="card-title mt-3">Quality</h4>
+                            <p class="card-text">Every vehicle in our inventory undergoes a rigorous inspection to ensure it meets our high standards for quality, safety, and reliability.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card h-100">
+                        <div class="card-body text-center">
+                            <i class="bi bi-people text-primary" style="font-size: 3rem;"></i>
+                            <h4 class="card-title mt-3">Customer Focus</h4>
+                            <p class="card-text">Our customers are at the heart of everything we do. We strive to create a pressure-free, enjoyable experience that puts your needs first.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Our Team Section -->
+    <div class="container py-5">
+        <h2 class="text-center mb-5">Meet Our Team</h2>
+        <div class="row justify-content-center">
+            <div class="col-md-4">
+                <div class="card team-member">
+                    <div class="card-body text-center">
+                        <img th:src="@{/images/profile/shubhrose-singh.jpg}" alt="Shubhrose Singh" class="team-img mb-3">
+                        <h4>Shubhrose Singh</h4>
+                        <p class="text-muted">Founder & CEO</p>
+                        <p>Shubhrose founded Premium Auto Dealership with a passion for luxury vehicles and a commitment to exceptional customer service.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-dark text-white py-4">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-4">
+                    <h5>Premium Auto Dealership</h5>
+                    <p>Your trusted partner for quality vehicles.</p>
+                </div>
+                <div class="col-md-4">
+                    <h5>Quick Links</h5>
+                    <ul class="list-unstyled">
+                        <li><a th:href="@{/}" class="text-white">Home</a></li>
+                        <li><a th:href="@{/vehicles}" class="text-white">Inventory</a></li>
+                        <li><a th:href="@{/about}" class="text-white">About Us</a></li>
+                        <li><a th:href="@{/contact}" class="text-white">Contact</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-4">
+                    <h5>Contact Us</h5>
+                    <address>
+                        <p>123 Dealership Street<br>City, State 12345</p>
+                        <p>Phone: (555) 123-4567<br>Email: info@premiumauto.com</p>
+                    </address>
+                </div>
+            </div>
+            <hr>
+            <div class="text-center">
+                <p>&copy; 2023 Premium Auto Dealership. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html> 

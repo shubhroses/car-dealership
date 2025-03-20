@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customer Inquiries - Admin - Premium Auto Dealership</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.0/font/bootstrap-icons.css" rel="stylesheet">
+    <!-- Custom CSS -->
+    <style>
+        .sidebar {
+            position: fixed;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            z-index: 100;
+            padding: 48px 0 0;
+            box-shadow: inset -1px 0 0 rgba(0, 0, 0, .1);
+            background-color: #212529;
+        }
+        
+        .sidebar-sticky {
+            height: calc(100vh - 48px);
+            overflow-x: hidden;
+            overflow-y: auto;
+        }
+        
+        .sidebar .nav-link {
+            font-weight: 500;
+            color: rgba(255, 255, 255, 0.75);
+            padding: 0.75rem 1rem;
+        }
+        
+        .sidebar .nav-link:hover {
+            color: #fff;
+        }
+        
+        .sidebar .nav-link.active {
+            color: #fff;
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        
+        .sidebar .nav-link i {
+            margin-right: 10px;
+        }
+        
+        .main-content {
+            margin-left: 240px;
+            padding: 30px;
+        }
+        
+        @media (max-width: 767.98px) {
+            .sidebar {
+                width: 100%;
+                position: relative;
+                padding-top: 0;
+            }
+            
+            .main-content {
+                margin-left: 0;
+            }
+        }
+        
+        .inquiry-card {
+            transition: transform 0.2s;
+        }
+        
+        .inquiry-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar Navigation -->
+    <nav id="sidebar" class="col-md-3 col-lg-2 d-md-block sidebar">
+        <div class="position-sticky sidebar-sticky">
+            <div class="d-flex align-items-center justify-content-center mb-4 p-3">
+                <h5 class="text-white m-0">Premium Auto Dealership</h5>
+            </div>
+            <ul class="nav flex-column">
+                <li class="nav-item">
+                    <a class="nav-link" th:href="@{/admin/dashboard}">
+                        <i class="bi bi-speedometer2"></i> Dashboard
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" th:href="@{/admin/vehicles}">
+                        <i class="bi bi-car-front"></i> Vehicles
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link active" th:href="@{/admin/inquiries}">
+                        <i class="bi bi-chat-left-text"></i> Inquiries
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" th:href="@{/}">
+                        <i class="bi bi-house"></i> Back to Site
+                    </a>
+                </li>
+                <li class="nav-item mt-5">
+                    <form th:action="@{/logout}" method="post">
+                        <button class="nav-link w-100 text-start border-0 bg-transparent">
+                            <i class="bi bi-box-arrow-left"></i> Sign Out
+                        </button>
+                    </form>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="container-fluid">
+            <!-- Header -->
+            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pb-2 mb-4 border-bottom">
+                <h1 class="h2">Customer Inquiries</h1>
+                <div class="btn-toolbar mb-2 mb-md-0">
+                    <div class="btn-group me-2">
+                        <button type="button" class="btn btn-sm btn-outline-secondary">Export</button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Success/Error Messages -->
+            <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show" role="alert">
+                <span th:text="${successMessage}">Success message</span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
+                <span th:text="${errorMessage}">Error message</span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            
+            <!-- Filters and Search -->
+            <div class="card mb-4">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">Filter Inquiries</h5>
+                </div>
+                <div class="card-body">
+                    <form th:action="@{/admin/inquiries}" method="get" class="row g-3">
+                        <div class="col-md-3">
+                            <label for="status" class="form-label">Status</label>
+                            <select class="form-select" id="status" name="status">
+                                <option value="">All Statuses</option>
+                                <option value="NEW" th:selected="${selectedStatus == 'NEW'}">New</option>
+                                <option value="IN_PROGRESS" th:selected="${selectedStatus == 'IN_PROGRESS'}">In Progress</option>
+                                <option value="RESPONDED" th:selected="${selectedStatus == 'RESPONDED'}">Responded</option>
+                                <option value="CLOSED" th:selected="${selectedStatus == 'CLOSED'}">Closed</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="vehicleMake" class="form-label">Vehicle Make</label>
+                            <select class="form-select" id="vehicleMake" name="vehicleMake">
+                                <option value="">All Makes</option>
+                                <option th:each="make : ${makes}" th:value="${make}" th:text="${make}" th:selected="${make == selectedMake}"></option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="dateRange" class="form-label">Date Range</label>
+                            <select class="form-select" id="dateRange" name="dateRange">
+                                <option value="">Any Time</option>
+                                <option value="today" th:selected="${selectedDateRange == 'today'}">Today</option>
+                                <option value="yesterday" th:selected="${selectedDateRange == 'yesterday'}">Yesterday</option>
+                                <option value="last7days" th:selected="${selectedDateRange == 'last7days'}">Last 7 Days</option>
+                                <option value="last30days" th:selected="${selectedDateRange == 'last30days'}">Last 30 Days</option>
+                                <option value="thisMonth" th:selected="${selectedDateRange == 'thisMonth'}">This Month</option>
+                                <option value="lastMonth" th:selected="${selectedDateRange == 'lastMonth'}">Last Month</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="search" class="form-label">Search</label>
+                            <input type="text" class="form-control" id="search" name="keyword" th:value="${keyword}" placeholder="Name, email, message content...">
+                        </div>
+                        <div class="col-md-12 d-flex">
+                            <button type="submit" class="btn btn-primary me-2">
+                                <i class="bi bi-search me-2"></i> Apply Filters
+                            </button>
+                            <a th:href="@{/admin/inquiries}" class="btn btn-outline-secondary">
+                                <i class="bi bi-x-circle me-2"></i> Clear
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- Inquiries List -->
+            <div class="card">
+                <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Inquiry List</h5>
+                    <span class="badge bg-secondary" th:text="${inquiries.size() + ' inquiries'}">0 inquiries</span>
+                </div>
+                <div class="card-body">
+                    <!-- Empty State -->
+                    <div th:if="${inquiries.empty}" class="text-center py-5">
+                        <i class="bi bi-chat-left-text fs-1 text-muted d-block mb-2"></i>
+                        <h4 class="mt-3">No Inquiries Found</h4>
+                        <p class="text-muted">There are no customer inquiries matching your filters.</p>
+                    </div>
+                    
+                    <!-- Inquiries -->
+                    <div th:if="${!inquiries.empty}" class="row g-4">
+                        <div th:each="inquiry : ${inquiries}" class="col-md-6 col-xl-4">
+                            <div class="card inquiry-card h-100" th:classappend="${
+                                inquiry.status.name() == 'NEW' ? 'border-info' : 
+                                (inquiry.status.name() == 'IN_PROGRESS' ? 'border-warning' : '')
+                            }">
+                                <div class="card-header d-flex justify-content-between align-items-center">
+                                    <span th:text="${inquiry.vehicle.year + ' ' + inquiry.vehicle.make + ' ' + inquiry.vehicle.model}">2023 Toyota Camry</span>
+                                    <span th:class="${'badge ' + 
+                                        (inquiry.status.name() == 'NEW' ? 'bg-info' : 
+                                        (inquiry.status.name() == 'IN_PROGRESS' ? 'bg-warning' : 
+                                        (inquiry.status.name() == 'RESPONDED' ? 'bg-success' : 'bg-secondary')))
+                                    }" th:text="${inquiry.status}">Status</span>
+                                </div>
+                                <div class="card-body">
+                                    <div class="mb-3">
+                                        <h6>Customer Information:</h6>
+                                        <p class="mb-1">
+                                            <strong>Name:</strong> <span th:text="${inquiry.user.firstName + ' ' + inquiry.user.lastName}">John Doe</span>
+                                        </p>
+                                        <p class="mb-1">
+                                            <strong>Email:</strong> <span th:text="${inquiry.user.email}">john.doe@example.com</span>
+                                        </p>
+                                        <p class="mb-0">
+                                            <strong>Phone:</strong> <span th:text="${inquiry.user.phone}">555-123-4567</span>
+                                        </p>
+                                    </div>
+                                    <div class="mb-3">
+                                        <h6>Date:</h6>
+                                        <p class="mb-0" th:text="${#temporals.format(inquiry.inquiryDate, 'MMMM dd, yyyy - h:mm a')}">January 1, 2023 - 10:30 AM</p>
+                                    </div>
+                                    <div class="mb-3">
+                                        <h6>Message:</h6>
+                                        <p class="mb-0" th:text="${inquiry.message}">Inquiry message content...</p>
+                                    </div>
+                                    <div th:if="${inquiry.response != null && !inquiry.response.isEmpty()}" class="mb-3">
+                                        <h6>Response:</h6>
+                                        <p class="mb-0" th:text="${inquiry.response}">Response message content...</p>
+                                    </div>
+                                </div>
+                                <div class="card-footer d-flex justify-content-between">
+                                    <a th:href="@{/vehicles/{id}(id=${inquiry.vehicle.id})}" class="btn btn-sm btn-outline-secondary">
+                                        <i class="bi bi-car-front me-1"></i> View Vehicle
+                                    </a>
+                                    <a th:href="@{/admin/inquiries/{id}(id=${inquiry.id})}" class="btn btn-sm btn-primary">
+                                        <i class="bi bi-reply me-1"></i> Respond
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <nav th:if="${totalPages > 1}">
+                        <ul class="pagination justify-content-center mb-0">
+                            <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled' : ''">
+                                <a class="page-link" th:href="@{/admin/inquiries(page=${currentPage - 1}, size=${size}, status=${selectedStatus}, vehicleMake=${selectedMake}, dateRange=${selectedDateRange}, keyword=${keyword})}">Previous</a>
+                            </li>
+                            <li class="page-item" th:each="i : ${#numbers.sequence(0, totalPages - 1)}" th:classappend="${currentPage == i} ? 'active' : ''">
+                                <a class="page-link" th:href="@{/admin/inquiries(page=${i}, size=${size}, status=${selectedStatus}, vehicleMake=${selectedMake}, dateRange=${selectedDateRange}, keyword=${keyword})}" th:text="${i + 1}">1</a>
+                            </li>
+                            <li class="page-item" th:classappend="${currentPage == totalPages - 1} ? 'disabled' : ''">
+                                <a class="page-link" th:href="@{/admin/inquiries(page=${currentPage + 1}, size=${size}, status=${selectedStatus}, vehicleMake=${selectedMake}, dateRange=${selectedDateRange}, keyword=${keyword})}">Next</a>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Bootstrap JS Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html> 

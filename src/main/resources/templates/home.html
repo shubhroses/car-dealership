@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Premium Auto Dealership</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Custom CSS -->
+    <style>
+        .hero-section {
+            background-image: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('[[@{/images/dealership/dealership-building.jpg}]]');
+            background-size: cover;
+            background-position: center;
+            height: 500px;
+            display: flex;
+            align-items: center;
+            color: white;
+        }
+        
+        .featured-car-card {
+            transition: transform 0.3s;
+            height: 100%;
+        }
+        
+        .featured-car-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+        
+        .car-img-container {
+            height: 200px;
+            overflow: hidden;
+        }
+        
+        .car-img-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand d-flex align-items-center" href="#">
+                <img th:src="@{/images/logo/dealership-logo.png}" alt="Logo" width="30" height="30" class="me-2">
+                Premium Auto Dealership
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link active" th:href="@{/}">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" th:href="@{/vehicles}">Inventory</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" th:href="@{/about}">About Us</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" th:href="@{/contact}">Contact</a>
+                    </li>
+                </ul>
+                <div class="d-flex">
+                    <div sec:authorize="!isAuthenticated()">
+                        <a th:href="@{/login}" class="btn btn-outline-light me-2">Login</a>
+                        <a th:href="@{/register}" class="btn btn-primary">Register</a>
+                    </div>
+                    <div sec:authorize="isAuthenticated()">
+                        <div class="dropdown">
+                            <button class="btn btn-outline-light dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                <span sec:authentication="name">Username</span>
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li sec:authorize="hasRole('ROLE_CUSTOMER')">
+                                    <a class="dropdown-item" th:href="@{/customer/dashboard}">My Dashboard</a>
+                                </li>
+                                <li sec:authorize="hasRole('ROLE_ADMIN')">
+                                    <a class="dropdown-item" th:href="@{/admin/dashboard}">Admin Dashboard</a>
+                                </li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <form th:action="@{/logout}" method="post">
+                                        <button class="dropdown-item" type="submit">Logout</button>
+                                    </form>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero-section">
+        <div class="container text-center">
+            <h1 class="display-4 fw-bold">Find Your Perfect Vehicle</h1>
+            <p class="lead">Browse our extensive inventory of quality vehicles</p>
+            <a th:href="@{/vehicles}" class="btn btn-primary btn-lg mt-3">View Inventory</a>
+        </div>
+    </section>
+
+    <!-- Search Section -->
+    <section class="bg-light py-5">
+        <div class="container">
+            <h2 class="text-center mb-4">Search Our Inventory</h2>
+            <form th:action="@{/vehicles}" method="get" class="row g-3">
+                <div class="col-md-3">
+                    <label for="make" class="form-label">Make</label>
+                    <select id="make" name="make" class="form-select">
+                        <option value="">All Makes</option>
+                        <option th:each="make : ${makes}" th:value="${make}" th:text="${make}"></option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="model" class="form-label">Model</label>
+                    <select id="model" name="model" class="form-select">
+                        <option value="">All Models</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label for="minPrice" class="form-label">Min Price</label>
+                    <input type="number" id="minPrice" name="minPrice" class="form-control" placeholder="Min $">
+                </div>
+                <div class="col-md-2">
+                    <label for="maxPrice" class="form-label">Max Price</label>
+                    <input type="number" id="maxPrice" name="maxPrice" class="form-control" placeholder="Max $">
+                </div>
+                <div class="col-md-2 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary w-100">Search</button>
+                </div>
+            </form>
+        </div>
+    </section>
+
+    <!-- Featured Vehicles -->
+    <section class="py-5">
+        <div class="container">
+            <h2 class="text-center mb-4">Featured Vehicles</h2>
+            <div class="row g-4">
+                <div th:each="vehicle : ${featuredVehicles}" class="col-md-4">
+                    <div class="card h-100 vehicle-card">
+                        <img th:if="${!vehicle.imageUrls.empty}" th:src="${vehicle.imageUrls[0]}" class="card-img-top" alt="Vehicle Image">
+                        <img th:if="${vehicle.imageUrls.empty}" src="/images/no-image.jpg" class="card-img-top" alt="No Image Available">
+                        <div class="card-body">
+                            <h5 class="card-title" th:text="${vehicle.modelYear + ' ' + vehicle.make + ' ' + vehicle.model}">Vehicle Title</h5>
+                            <p class="card-text text-muted mb-1">
+                                <i class="bi bi-speedometer2"></i> <span th:text="${vehicle.mileage + ' miles'}">Mileage</span>
+                            </p>
+                            <p class="card-text text-primary fw-bold fs-5 mb-3" th:text="${'$' + #numbers.formatDecimal(vehicle.price, 0, 'COMMA', 2, 'POINT')}">$28,000.00</p>
+                            <a th:href="@{'/vehicles/' + ${vehicle.id}}" class="btn btn-primary stretched-link">View Details</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="text-center mt-4">
+                <a th:href="@{/vehicles}" class="btn btn-lg btn-outline-dark">View All Vehicles</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Why Choose Us -->
+    <section class="bg-light py-5">
+        <div class="container">
+            <h2 class="text-center mb-5">Why Choose Premium Auto Dealership</h2>
+            <div class="row g-4">
+                <div class="col-md-4 text-center">
+                    <div class="p-3">
+                        <i class="bi bi-award fs-1 text-primary"></i>
+                        <h4 class="mt-3">Quality Vehicles</h4>
+                        <p>All our vehicles undergo rigorous inspection to ensure top quality and reliability.</p>
+                    </div>
+                </div>
+                <div class="col-md-4 text-center">
+                    <div class="p-3">
+                        <i class="bi bi-tag fs-1 text-primary"></i>
+                        <h4 class="mt-3">Competitive Pricing</h4>
+                        <p>We offer the best market prices with transparent financing options.</p>
+                    </div>
+                </div>
+                <div class="col-md-4 text-center">
+                    <div class="p-3">
+                        <i class="bi bi-headset fs-1 text-primary"></i>
+                        <h4 class="mt-3">Excellent Service</h4>
+                        <p>Our dedicated team is committed to providing exceptional customer service.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-dark text-white py-4">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-4">
+                    <h5>Premium Auto Dealership</h5>
+                    <p>Your trusted partner for quality vehicles.</p>
+                </div>
+                <div class="col-md-4">
+                    <h5>Quick Links</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="#" class="text-white">Home</a></li>
+                        <li><a th:href="@{/vehicles}" class="text-white">Inventory</a></li>
+                        <li><a th:href="@{/about}" class="text-white">About Us</a></li>
+                        <li><a th:href="@{/contact}" class="text-white">Contact</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-4">
+                    <h5>Contact Us</h5>
+                    <address>
+                        <p>123 Dealership Street<br>City, State 12345</p>
+                        <p>Phone: (555) 123-4567<br>Email: info@premiumauto.com</p>
+                    </address>
+                </div>
+            </div>
+            <hr>
+            <div class="text-center">
+                <p>&copy; 2023 Premium Auto Dealership. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.0/font/bootstrap-icons.css" rel="stylesheet">
+    <!-- Bootstrap JS Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Custom JavaScript for dynamic model selection -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const makeSelect = document.getElementById('make');
+            const modelSelect = document.getElementById('model');
+            
+            makeSelect.addEventListener('change', function() {
+                const selectedMake = this.value;
+                
+                if (selectedMake) {
+                    // In a real application, this would make an AJAX call to get models for the selected make
+                    fetch(`/dealership/api/models?make=${selectedMake}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            modelSelect.innerHTML = '<option value="">All Models</option>';
+                            data.forEach(model => {
+                                const option = document.createElement('option');
+                                option.value = model;
+                                option.textContent = model;
+                                modelSelect.appendChild(option);
+                            });
+                        });
+                } else {
+                    modelSelect.innerHTML = '<option value="">All Models</option>';
+                }
+            });
+        });
+    </script>
+</body>
+</html> 

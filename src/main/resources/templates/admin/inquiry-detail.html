@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inquiry Details - Admin - Premium Auto Dealership</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.0/font/bootstrap-icons.css" rel="stylesheet">
+    <!-- Custom CSS -->
+    <style>
+        .sidebar {
+            position: fixed;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            z-index: 100;
+            padding: 48px 0 0;
+            box-shadow: inset -1px 0 0 rgba(0, 0, 0, .1);
+            background-color: #212529;
+        }
+        
+        .sidebar-sticky {
+            height: calc(100vh - 48px);
+            overflow-x: hidden;
+            overflow-y: auto;
+        }
+        
+        .sidebar .nav-link {
+            font-weight: 500;
+            color: rgba(255, 255, 255, 0.75);
+            padding: 0.75rem 1rem;
+        }
+        
+        .sidebar .nav-link:hover {
+            color: #fff;
+        }
+        
+        .sidebar .nav-link.active {
+            color: #fff;
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        
+        .sidebar .nav-link i {
+            margin-right: 10px;
+        }
+        
+        .main-content {
+            margin-left: 240px;
+            padding: 30px;
+        }
+        
+        @media (max-width: 767.98px) {
+            .sidebar {
+                width: 100%;
+                position: relative;
+                padding-top: 0;
+            }
+            
+            .main-content {
+                margin-left: 0;
+            }
+        }
+        
+        .message-box {
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .customer-message {
+            background-color: #f0f7ff;
+            border-left: 4px solid #0d6efd;
+        }
+        
+        .staff-response {
+            background-color: #f8f9fa;
+            border-left: 4px solid #6c757d;
+        }
+        
+        .vehicle-info {
+            transition: transform 0.2s;
+        }
+        
+        .vehicle-info:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar Navigation -->
+    <nav id="sidebar" class="col-md-3 col-lg-2 d-md-block sidebar">
+        <div class="position-sticky sidebar-sticky">
+            <div class="d-flex align-items-center justify-content-center mb-4 p-3">
+                <h5 class="text-white m-0">Premium Auto Dealership</h5>
+            </div>
+            <ul class="nav flex-column">
+                <li class="nav-item">
+                    <a class="nav-link" th:href="@{/admin/dashboard}">
+                        <i class="bi bi-speedometer2"></i> Dashboard
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" th:href="@{/admin/vehicles}">
+                        <i class="bi bi-car-front"></i> Vehicles
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link active" th:href="@{/admin/inquiries}">
+                        <i class="bi bi-chat-left-text"></i> Inquiries
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" th:href="@{/}">
+                        <i class="bi bi-house"></i> Back to Site
+                    </a>
+                </li>
+                <li class="nav-item mt-5">
+                    <form th:action="@{/logout}" method="post">
+                        <button class="nav-link w-100 text-start border-0 bg-transparent">
+                            <i class="bi bi-box-arrow-left"></i> Sign Out
+                        </button>
+                    </form>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="container-fluid">
+            <!-- Header -->
+            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pb-2 mb-4 border-bottom">
+                <div>
+                    <a th:href="@{/admin/inquiries}" class="btn btn-sm btn-outline-secondary me-2">
+                        <i class="bi bi-arrow-left"></i> Back to Inquiries
+                    </a>
+                    <h1 class="h2 d-inline-block">Inquiry Details</h1>
+                </div>
+                <div class="badge" th:classappend="${
+                    inquiry.status.name() == 'NEW' ? 'bg-info' : 
+                    (inquiry.status.name() == 'IN_PROGRESS' ? 'bg-warning' : 
+                    (inquiry.status.name() == 'RESPONDED' ? 'bg-success' : 'bg-secondary'))
+                }" style="font-size: 1rem;" th:text="${inquiry.status}">Status</div>
+            </div>
+            
+            <!-- Success/Error Messages -->
+            <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show" role="alert">
+                <span th:text="${successMessage}">Success message</span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
+                <span th:text="${errorMessage}">Error message</span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            
+            <!-- Content Area -->
+            <div class="row">
+                <!-- Customer and Vehicle Information -->
+                <div class="col-md-4">
+                    <div class="card mb-4">
+                        <div class="card-header bg-light">
+                            <h5 class="mb-0">Customer Information</h5>
+                        </div>
+                        <div class="card-body">
+                            <p class="mb-2">
+                                <i class="bi bi-person-fill me-2"></i>
+                                <strong>Name:</strong> <span th:text="${inquiry.user.firstName + ' ' + inquiry.user.lastName}">John Doe</span>
+                            </p>
+                            <p class="mb-2">
+                                <i class="bi bi-envelope-fill me-2"></i>
+                                <strong>Email:</strong> <a th:href="'mailto:' + ${inquiry.user.email}" th:text="${inquiry.user.email}">john.doe@example.com</a>
+                            </p>
+                            <p class="mb-2">
+                                <i class="bi bi-telephone-fill me-2"></i>
+                                <strong>Phone:</strong> <a th:href="'tel:' + ${inquiry.user.phone}" th:text="${inquiry.user.phone}">555-123-4567</a>
+                            </p>
+                            <p class="mb-0">
+                                <i class="bi bi-calendar-event me-2"></i>
+                                <strong>Member Since:</strong> <span th:text="${#temporals.format(inquiry.user.createdAt, 'MMMM dd, yyyy')}">January 1, 2023</span>
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <div class="card mb-4 vehicle-info">
+                        <div class="card-header bg-light">
+                            <h5 class="mb-0">Vehicle Information</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="vehicle-summary d-flex align-items-center mb-3">
+                                <img th:if="${!inquiry.vehicle.imageUrls.empty}" th:src="${inquiry.vehicle.imageUrls[0]}" alt="Vehicle Image" class="img-thumbnail me-3" style="width: 80px; height: 60px; object-fit: cover;">
+                                <div>
+                                    <h5 th:text="${inquiry.vehicle.modelYear + ' ' + inquiry.vehicle.make + ' ' + inquiry.vehicle.model}">2023 Toyota Camry</h5>
+                                    <p class="text-muted mb-0" th:text="${'VIN: ' + inquiry.vehicle.vin}">VIN: 1HGCM82633A123456</p>
+                                </div>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-6">
+                                    <small class="text-muted d-block">Price</small>
+                                    <span class="fw-bold" th:text="${'$' + #numbers.formatDecimal(inquiry.vehicle.price, 0, 'COMMA', 2, 'POINT')}">$25,000.00</span>
+                                </div>
+                                <div class="col-6">
+                                    <small class="text-muted d-block">Status</small>
+                                    <span class="badge" th:classappend="${
+                                        inquiry.vehicle.status.name() == 'AVAILABLE' ? 'bg-success' : 
+                                        (inquiry.vehicle.status.name() == 'SOLD' ? 'bg-danger' : 
+                                        (inquiry.vehicle.status.name() == 'RESERVED' ? 'bg-warning' : 'bg-secondary'))
+                                    }" th:text="${inquiry.vehicle.status}">Status</span>
+                                </div>
+                            </div>
+                            <a th:href="@{/vehicles/{id}(id=${inquiry.vehicle.id})}" class="btn btn-outline-primary btn-sm w-100" target="_blank">
+                                <i class="bi bi-car-front me-2"></i> View Vehicle Details
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Inquiry Conversation -->
+                <div class="col-md-8">
+                    <div class="card">
+                        <div class="card-header bg-light">
+                            <h5 class="mb-0">Conversation</h5>
+                        </div>
+                        <div class="card-body">
+                            <!-- Inquiry Date -->
+                            <div class="text-center mb-4">
+                                <span class="badge bg-light text-dark" th:text="${#temporals.format(inquiry.inquiryDate, 'EEEE, MMMM dd, yyyy - h:mm a')}">Monday, January 1, 2023 - 10:30 AM</span>
+                            </div>
+                            
+                            <!-- Customer Message -->
+                            <div class="message-box customer-message">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <div>
+                                        <i class="bi bi-person-circle me-2"></i>
+                                        <strong th:text="${inquiry.user.firstName + ' ' + inquiry.user.lastName}">John Doe</strong>
+                                    </div>
+                                    <small class="text-muted" th:text="${#temporals.format(inquiry.inquiryDate, 'h:mm a')}">10:30 AM</small>
+                                </div>
+                                <p class="mb-0" th:text="${inquiry.message}">
+                                    Hello, I'm interested in this vehicle. Is it still available? I would like to schedule a test drive this weekend. Can you please let me know what time works best?
+                                </p>
+                            </div>
+                            
+                            <!-- Staff Response (if exists) -->
+                            <div th:if="${inquiry.response != null && !inquiry.response.isEmpty()}" class="message-box staff-response">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <div>
+                                        <i class="bi bi-person-badge me-2"></i>
+                                        <strong th:text="${inquiry.respondedBy != null ? inquiry.respondedBy : 'Staff'}">Staff</strong>
+                                    </div>
+                                    <small class="text-muted" th:text="${inquiry.responseDate != null ? #temporals.format(inquiry.responseDate, 'h:mm a') : ''}">2:45 PM</small>
+                                </div>
+                                <p class="mb-0" th:text="${inquiry.response}">
+                                    Thank you for your interest in the 2023 Toyota Camry. Yes, this vehicle is still available for a test drive. We would be happy to accommodate you this weekend. Our available times are Saturday from 9 AM to 6 PM and Sunday from 10 AM to 4 PM. Please let me know what time works best for you, and I'll make the arrangements.
+                                </p>
+                            </div>
+                            
+                            <!-- Response Form (if not yet responded) -->
+                            <form th:if="${inquiry.response == null || inquiry.response.isEmpty()}" th:action="@{/admin/inquiries/{id}/respond(id=${inquiry.id})}" method="post" class="mt-4">
+                                <div class="form-group mb-3">
+                                    <label for="responseMessage" class="form-label">Your Response</label>
+                                    <textarea class="form-control" id="responseMessage" name="response" rows="6" required></textarea>
+                                </div>
+                                <div class="d-flex justify-content-between">
+                                    <div>
+                                        <button type="submit" name="action" value="save" class="btn btn-outline-secondary me-2">
+                                            <i class="bi bi-save me-2"></i> Save as Draft
+                                        </button>
+                                        <button type="submit" name="action" value="in_progress" class="btn btn-warning me-2">
+                                            <i class="bi bi-hourglass-split me-2"></i> Mark as In Progress
+                                        </button>
+                                    </div>
+                                    <button type="submit" name="action" value="respond" class="btn btn-primary">
+                                        <i class="bi bi-send me-2"></i> Send Response
+                                    </button>
+                                </div>
+                            </form>
+                            
+                            <!-- Update Response Form (if already responded) -->
+                            <form th:if="${inquiry.response != null && !inquiry.response.isEmpty()}" th:action="@{/admin/inquiries/{id}/update(id=${inquiry.id})}" method="post" class="mt-4">
+                                <div class="form-group mb-3">
+                                    <label for="updateResponse" class="form-label">Update Response</label>
+                                    <textarea class="form-control" id="updateResponse" name="response" rows="6" th:text="${inquiry.response}" required></textarea>
+                                </div>
+                                <div class="d-flex justify-content-between">
+                                    <div>
+                                        <button type="submit" name="action" value="close" class="btn btn-outline-secondary me-2">
+                                            <i class="bi bi-archive me-2"></i> Close Inquiry
+                                        </button>
+                                    </div>
+                                    <button type="submit" name="action" value="update" class="btn btn-primary">
+                                        <i class="bi bi-save me-2"></i> Update Response
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Bootstrap JS Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html> 
