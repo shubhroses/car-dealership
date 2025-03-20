@@ -2,6 +2,7 @@ package com.dealership.cardealership.controller;
 
 import com.dealership.cardealership.model.Vehicle;
 import com.dealership.cardealership.repository.VehicleRepository;
+import com.dealership.cardealership.service.EmailService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -11,11 +12,14 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.List;
 import java.util.Optional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Controller for the home page and public vehicle browsing.
@@ -23,8 +27,13 @@ import java.util.Optional;
 @Controller
 public class HomeController {
 
+    private static final Logger logger = LoggerFactory.getLogger(HomeController.class);
+    
     @Autowired
     private VehicleRepository vehicleRepository;
+    
+    @Autowired
+    private EmailService emailService;
     
     /**
      * Display the home page with featured vehicles
@@ -60,6 +69,68 @@ public class HomeController {
     @GetMapping("/contact")
     public String contact() {
         return "contact";
+    }
+    
+    /**
+     * Handle contact form submission
+     */
+    @PostMapping("/contact/submit")
+    public String submitContactForm(
+            @RequestParam String name,
+            @RequestParam String email,
+            @RequestParam(required = false) String phone,
+            @RequestParam String subject,
+            @RequestParam String message,
+            RedirectAttributes redirectAttributes) {
+        
+        // Log the contact submission
+        logger.info("Contact form submission from: {} ({})", name, email);
+        logger.info("Subject: {}", subject);
+        
+        try {
+            // Build the email message
+            String emailBody = String.format(
+                "Contact Form Submission:\n\n" +
+                "Name: %s\n" +
+                "Email: %s\n" +
+                "Phone: %s\n\n" +
+                "Message:\n%s",
+                name, email, phone != null ? phone : "Not provided", message
+            );
+            
+            // Send to dealership contact email
+            emailService.sendEmail(
+                emailService.getContactEmail(),   // To: dealership
+                "Contact Form: " + subject,       // Subject
+                emailBody                         // Body
+            );
+            
+            // Send confirmation to the customer
+            String confirmationBody = String.format(
+                "Dear %s,\n\n" +
+                "Thank you for contacting Premium Auto Dealership. " +
+                "We have received your message regarding \"%s\" and will get back to you shortly.\n\n" +
+                "Your message:\n%s\n\n" +
+                "Best regards,\n" +
+                "Premium Auto Dealership Team",
+                name, subject, message
+            );
+            
+            emailService.sendEmail(
+                email,                           // To: customer
+                "Thank you for contacting Premium Auto Dealership", // Subject
+                confirmationBody                 // Body
+            );
+            
+            redirectAttributes.addFlashAttribute("successMessage", 
+                "Thank you for your message, " + name + "! We'll get back to you soon.");
+        } catch (Exception e) {
+            logger.error("Error sending email: {}", e.getMessage());
+            redirectAttributes.addFlashAttribute("errorMessage", 
+                "Sorry, there was a problem sending your message. Please try again or contact us directly.");
+        }
+        
+        return "redirect:/contact";
     }
     
     /**
