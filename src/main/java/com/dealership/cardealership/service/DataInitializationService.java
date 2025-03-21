@@ -17,12 +17,16 @@ import java.time.Year;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Service to initialize the database with sample data on application startup.
  */
 @Service
 public class DataInitializationService {
+    
+    private static final Logger logger = LoggerFactory.getLogger(DataInitializationService.class);
 
     private final UserRepository userRepository;
     private final VehicleRepository vehicleRepository;
@@ -40,10 +44,29 @@ public class DataInitializationService {
     @EventListener(ApplicationReadyEvent.class)
     @Transactional
     public void initializeData() {
-        // Only initialize if the database is empty
-        if (userRepository.count() == 0 && vehicleRepository.count() == 0) {
-            createUsers();
-            createVehicles();
+        try {
+            // Try to check if the database is empty
+            long userCount = 0;
+            long vehicleCount = 0;
+            
+            try {
+                userCount = userRepository.count();
+                vehicleCount = vehicleRepository.count();
+            } catch (Exception e) {
+                logger.warn("Error checking database counts, will proceed with initialization: {}", e.getMessage());
+            }
+            
+            // Initialize if the database appears to be empty
+            if (userCount == 0 || vehicleCount == 0) {
+                logger.info("Initializing database with sample data");
+                createUsers();
+                createVehicles();
+                logger.info("Database initialization completed successfully");
+            } else {
+                logger.info("Database already contains data, skipping initialization");
+            }
+        } catch (Exception e) {
+            logger.error("Failed to initialize database: {}", e.getMessage(), e);
         }
     }
     
