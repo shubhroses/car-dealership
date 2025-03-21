@@ -148,7 +148,7 @@ car-dealership/
 
 6. Access your deployed application at:
    ```
-   https://car-dealership-production-a328.up.railway.app/dealership
+   https://car-dealership-production-a328.up.railway.app/dealership 
    ```
 
 ## Key Components
