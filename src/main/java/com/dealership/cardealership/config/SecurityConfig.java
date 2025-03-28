@@ -40,8 +40,10 @@ public class SecurityConfig {
         http
             .authorizeHttpRequests(authorize -> authorize
                 // Public pages
-                .requestMatchers("/", "/vehicles", "/vehicles/*", "/about", "/contact", "/register", 
-                             "/css/**", "/js/**", "/images/**", "/api/**").permitAll()
+                .requestMatchers("/", "/vehicles", "/vehicles/*", 
+                             "/about", "/contact", "/register", 
+                             "/css/**", "/js/**", "/images/**", 
+                             "/api/**", "/h2-console/**").permitAll()
                 // Admin area
                 .requestMatchers("/admin/**").hasRole("ADMIN")
                 // Customer area
@@ -68,6 +70,19 @@ public class SecurityConfig {
             .exceptionHandling(exception -> exception
                 .accessDeniedPage("/access-denied")
             );
+        
+        // Disable CSRF for H2 console
+        http.csrf(csrf -> csrf
+            .ignoringRequestMatchers("/h2-console/**")
+        );
+        
+        // Allow H2 console to be displayed in iframe
+        http.headers(headers -> headers
+            .frameOptions(frame -> frame
+                .sameOrigin()
+                .disable()
+            )
+        );
         
         return http.build();
     }

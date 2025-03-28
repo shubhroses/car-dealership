@@ -10,7 +10,7 @@
     <!-- Custom CSS -->
     <style>
         .hero-section {
-            background-image: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('[[@{/images/dealership/dealership-building.jpg}]]');
+            background-image: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('[[@{/dealership/images/dealership/dealership-building.jpg}]]');
             background-size: cover;
             background-position: center;
             height: 500px;
@@ -45,7 +45,7 @@
     <!-- Navigation -->
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
         <div class="container">
-            <a class="navbar-brand d-flex align-items-center" href="#">
+            <a class="navbar-brand d-flex align-items-center" th:href="@{/}">
                 <img th:src="@{/images/logo/dealership-logo.png}" alt="Logo" width="30" height="30" class="me-2">
                 Premium Auto Dealership
             </a>
@@ -148,7 +148,7 @@
                 <div th:each="vehicle : ${featuredVehicles}" class="col-md-4">
                     <div class="card h-100 vehicle-card">
                         <img th:if="${!vehicle.imageUrls.empty}" th:src="${vehicle.imageUrls[0]}" class="card-img-top" alt="Vehicle Image">
-                        <img th:if="${vehicle.imageUrls.empty}" src="/images/no-image.jpg" class="card-img-top" alt="No Image Available">
+                        <img th:if="${vehicle.imageUrls.empty}" th:src="@{/dealership/images/no-image.jpg}" class="card-img-top" alt="No Image Available">
                         <div class="card-body">
                             <h5 class="card-title" th:text="${vehicle.modelYear + ' ' + vehicle.make + ' ' + vehicle.model}">Vehicle Title</h5>
                             <p class="card-text text-muted mb-1">
@@ -207,7 +207,7 @@
                 <div class="col-md-4">
                     <h5>Quick Links</h5>
                     <ul class="list-unstyled">
-                        <li><a href="#" class="text-white">Home</a></li>
+                        <li><a th:href="@{/}" class="text-white">Home</a></li>
                         <li><a th:href="@{/vehicles}" class="text-white">Inventory</a></li>
                         <li><a th:href="@{/about}" class="text-white">About Us</a></li>
                         <li><a th:href="@{/contact}" class="text-white">Contact</a></li>
@@ -243,17 +243,16 @@
                 const selectedMake = this.value;
                 
                 if (selectedMake) {
-                    // In a real application, this would make an AJAX call to get models for the selected make
                     fetch(`/dealership/api/models?make=${selectedMake}`)
                         .then(response => response.json())
                         .then(data => {
                             modelSelect.innerHTML = '<option value="">All Models</option>';
                             data.forEach(model => {
-                                const option = document.createElement('option');
-                                option.value = model;
-                                option.textContent = model;
-                                modelSelect.appendChild(option);
+                                modelSelect.innerHTML += `<option value="${model}">${model}</option>`;
                             });
+                        })
+                        .catch(error => {
+                            console.error('Error fetching models:', error);
                         });
                 } else {
                     modelSelect.innerHTML = '<option value="">All Models</option>';
